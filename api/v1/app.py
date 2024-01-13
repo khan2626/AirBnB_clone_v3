@@ -2,20 +2,38 @@
 """a flask app"""
 
 
-from flask import Flask
+from flask import Flask, make_response, jsonify
 from models import storage
 from api.v1.views import app_views
 from os import getenv
+from flask_cors import CORS
+from flasgger import Swagger
 
 
 app = Flask(__name__)
 app.register_blueprint(app_views)
+cors = CORS(app, resources={r"/api/*": {"origins": "0.0.0.0"}})
 
 
 @app.teardown_appcontext
 def close(obj):
     """it calls close function on storage"""
     storage.close
+
+
+@app.errorhandler(404)
+def page_not_foun(error):
+    """ Loads a custom 404 page not found """
+    return make_response(jsonify({"error": "Not found"}), 404)
+
+
+app.config['SWAGGER'] = {
+    'title': 'AirBnB clone - RESTful API',
+    'description': 'This is the api that was created for the hbnb restful api project,\
+    all the documentation will be shown below',
+    'uiversion': 3}
+
+Swagger(app)
 
 
 if __name__ == "__main__":
